@@ -11,7 +11,9 @@ from sqlalchemy.orm import Session, joinedload
 from app.api.deps import get_current_user
 from app.database.session import get_db
 from app.models.course import Course
+from app.models.analytics import LearningAnalytics
 from app.models.module import Module
+from app.models.progress import UserProgress
 from app.models.user import User
 from app.schemas.course import CourseCreate, CourseRead
 from app.schemas.roadmap import RoadmapRead, ModuleSummary, LessonSummary
@@ -59,6 +61,33 @@ def get_course(
     if course is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
     return course
+
+
+@router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_course(
+    course_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    course = (
+        db.query(Course)
+        .filter(Course.id == course_id, Course.user_id == current_user.id)
+        .first()
+    )
+    if course is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
+
+    db.query(UserProgress).filter(
+        UserProgress.course_id == course_id,
+        UserProgress.user_id == current_user.id,
+    ).delete(synchronize_session=False)
+    db.query(LearningAnalytics).filter(
+        LearningAnalytics.course_id == course_id,
+        LearningAnalytics.user_id == current_user.id,
+    ).delete(synchronize_session=False)
+
+    db.delete(course)
+    db.commit()
 
 
 @router.get("/{course_id}/roadmap", response_model=RoadmapRead)
