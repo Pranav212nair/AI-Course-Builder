@@ -21,8 +21,9 @@ services:
       - key: ENVIRONMENT
         value: production
 
-  - type: staticSite
+  - type: web
     name: ai-course-builder-web
+    runtime: static
     plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
