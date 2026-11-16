@@ -122,6 +122,7 @@ PUT    /users/me/preferences
 POST   /courses/create
 GET    /courses
 GET    /courses/{course_id}
+DELETE /courses/{course_id}
 GET    /courses/{course_id}/roadmap
 
 POST   /assessment/start          ?course_id=...
