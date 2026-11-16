@@ -2,6 +2,7 @@ services:
   - type: web
     name: ai-course-builder-api
     runtime: python
+    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
@@ -11,21 +12,26 @@ services:
         fromDatabase:
           name: ai-course-builder-db
           property: connectionString
+
       - key: SECRET_KEY
         generateValue: true
+
       - key: FRONTEND_ORIGIN
         value: https://ai-course-builder-web.onrender.com
+
       - key: USE_MOCK_AI
         value: "true"
+
       - key: ENVIRONMENT
         value: production
 
   - type: web
     name: ai-course-builder-web
     runtime: static
+    plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
-    staticPublishPath: dist
+    staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
         value: https://ai-course-builder-api.onrender.com
