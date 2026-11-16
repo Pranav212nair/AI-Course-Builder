@@ -21,7 +21,7 @@ services:
       - key: ENVIRONMENT
         value: production
 
-  - type: static
+  - type: staticSite
     name: ai-course-builder-web
     plan: free
     rootDir: frontend
