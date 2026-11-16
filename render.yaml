@@ -2,7 +2,6 @@ services:
   - type: web
     name: ai-course-builder-api
     runtime: python
-    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
@@ -24,7 +23,6 @@ services:
   - type: web
     name: ai-course-builder-web
     runtime: static
-    plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
