@@ -1,4 +1,3 @@
-
 services:
   - type: web
     name: ai-course-builder-api
@@ -30,7 +29,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        https://ai-course-builder-api-rm2l.onrender.com
+        value: https://ai-course-builder-api-rm2l.onrender.com
     routes:
       - type: rewrite
         source: /*
