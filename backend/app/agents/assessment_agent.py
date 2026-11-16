@@ -1,4 +1,80 @@
-def _mock_questions(topic: str, current_level: SkillLevel) -> AssessmentQuestionSet:
+"""
+Agent 1: Skill Assessment Agent.
+
+Generates assessment questions for a topic/level, and evaluates the
+user's answers into a skill level + strengths/weaknesses.
+"""
+
+from app.agents.ai_schemas import (
+    AssessmentQuestionOut,
+    AssessmentQuestionSet,
+    AssessmentResult,
+)
+from app.core.ai_client import call_structured
+from app.models.enums import SkillLevel
+
+
+def generate_assessment_questions(
+    topic: str, current_level: SkillLevel
+) -> AssessmentQuestionSet:
+    return call_structured(
+        system_prompt=(
+            "You are the Skill Assessment Agent in an AI course builder. "
+            "Generate multiple-choice questions that accurately probe whether "
+            "a learner is at the level they claim, covering a spread of "
+            "subtopics within the given topic."
+        ),
+        user_prompt=(
+            f"Topic: {topic}\n"
+            f"Learner's self-reported level: {current_level.value}\n"
+            "Generate 5 multiple-choice questions, each with exactly 4 "
+            "options and one correct_answer that matches one option exactly. "
+            "Vary the subtopics covered."
+        ),
+        response_model=AssessmentQuestionSet,
+        mock_fn=lambda: _mock_questions(topic, current_level),
+    )
+
+
+def evaluate_assessment(
+    topic: str, current_level: SkillLevel, answered: list[dict]
+) -> AssessmentResult:
+    """
+    `answered` is a list of dictionaries containing:
+    question, topic, options, correct_answer, and selected_answer.
+    """
+    correct_count = sum(
+        1
+        for answer in answered
+        if answer["selected_answer"] == answer["correct_answer"]
+    )
+    accuracy = correct_count / len(answered) if answered else 0
+
+    return call_structured(
+        system_prompt=(
+            "You are the Skill Assessment Agent. Given a learner's answers "
+            "to a diagnostic quiz, determine their real skill level and "
+            "identify specific strengths and weaknesses by subtopic. "
+            "Name the concepts instead of using vague labels such as "
+            "'good' or 'bad'."
+        ),
+        user_prompt=(
+            f"Topic: {topic}\n"
+            f"Self-reported level: {current_level.value}\n"
+            f"Accuracy: {correct_count}/{len(answered)} ({accuracy:.0%})\n"
+            f"Answers: {answered}"
+        ),
+        response_model=AssessmentResult,
+        mock_fn=lambda: _mock_result(current_level, accuracy, answered),
+    )
+
+
+# Mocks used when USE_MOCK_AI=true or no API key is configured.
+
+
+def _mock_questions(
+    topic: str, current_level: SkillLevel
+) -> AssessmentQuestionSet:
     normalized_topic = topic.strip().lower()
 
     if "java" in normalized_topic:
@@ -114,3 +190,43 @@ def _mock_questions(topic: str, current_level: SkillLevel) -> AssessmentQuestion
     ]
 
     return AssessmentQuestionSet(questions=questions)
+
+
+def _mock_result(
+    current_level: SkillLevel,
+    accuracy: float,
+    answered: list[dict],
+) -> AssessmentResult:
+    levels = list(SkillLevel)
+    current_index = levels.index(current_level)
+
+    if accuracy >= 0.8 and current_index < len(levels) - 1:
+        skill_level = levels[current_index + 1]
+    elif accuracy < 0.4 and current_index > 0:
+        skill_level = levels[current_index - 1]
+    else:
+        skill_level = current_level
+
+    topics = [
+        answer.get("topic", "General")
+        for answer in answered
+    ]
+
+    correct_topics = [
+        answer.get("topic", "General")
+        for answer in answered
+        if answer["selected_answer"] == answer["correct_answer"]
+    ]
+
+    incorrect_topics = [
+        topic_name
+        for topic_name in topics
+        if topic_name not in correct_topics
+    ] or ["Fundamentals"]
+
+    return AssessmentResult(
+        skill_level=skill_level,
+        strengths=list(dict.fromkeys(correct_topics))[:5]
+        or ["Getting started"],
+        weaknesses=list(dict.fromkeys(incorrect_topics))[:5],
+    )
