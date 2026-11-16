@@ -41,29 +41,82 @@ def generate_lesson_content(
             "over-explain for advanced learners or skip basics for beginners."
         ),
         response_model=LessonContentOut,
-        mock_fn=lambda: _mock_content(module_title, lesson_title, skill_level),
+        mock_fn=lambda: _mock_content(
+            course_topic, module_title, lesson_title, skill_level
+        ),
     )
 
 
-def _mock_content(module_title: str, lesson_title: str, skill_level: SkillLevel) -> LessonContentOut:
+def _mock_content(
+    course_topic: str,
+    module_title: str,
+    lesson_title: str,
+    skill_level: SkillLevel,
+) -> LessonContentOut:
+    topic = course_topic.strip().lower()
+    lesson = lesson_title.strip().lower()
+
+    if "java" in topic:
+        content = {
+            "getting set up": (
+                ["Install a JDK and verify it with `java --version`",
+                 "Compile and run a small Java class"],
+                "A Java program is compiled by the JDK and then run by the JVM. "
+                "The JDK includes tools such as `javac`, while the JVM executes "
+                "the compiled bytecode.",
+                ["Run `java --version`.", "Create `Hello.java` with a main method and run it."],
+                "Create a small Java program that prints your name and confirm it runs from the command line.",
+                "You learned how the JDK, compiler, and JVM fit together.",
+            ),
+            "core concepts": (
+                ["Declare variables with appropriate Java types",
+                 "Explain the difference between primitive values and objects"],
+                "Java is statically typed, so each variable has a declared type. "
+                "Primitive types store simple values, while reference variables "
+                "refer to objects.",
+                ["int age =  twentyFive;".replace("twentyFive", "25"),
+                 "String name = \"Ada\";"],
+                "Declare variables for a person's name, age, and whether they are enrolled.",
+                "You practiced Java variables and the distinction between values and objects.",
+            ),
+            "your first exercise": (
+                ["Write a class with a clear main method",
+                 "Use variables and output to solve a small problem"],
+                "A useful first Java exercise combines a class, the `main` method, "
+                "variables, and `System.out.println`.",
+                ["int width = 4;", "int height = 6;", "System.out.println(width * height);"],
+                "Write a program that calculates and prints the area of a rectangle.",
+                "You combined Java syntax into a small working program.",
+            ),
+        }.get(lesson)
+        if content:
+            objectives, explanation, examples, exercise, summary = content
+            return LessonContentOut(
+                objectives=objectives,
+                explanation=explanation,
+                examples=examples,
+                exercise=exercise,
+                summary=summary,
+            )
+
     return LessonContentOut(
         objectives=[
-            f"Understand what '{lesson_title}' means in the context of {module_title}",
-            "Apply the idea in a small example",
+            f"Explain {lesson_title} in the context of {module_title}",
+            f"Apply {lesson_title} to a {course_topic} exercise",
         ],
         explanation=(
-            f"This lesson covers {lesson_title.lower()}, part of {module_title}. "
+            f"This lesson covers {lesson_title}, part of {module_title} in {course_topic}. "
             f"At a {skill_level.value} level, focus on building an accurate mental "
             "model before optimizing for speed or edge cases. Start from a concrete "
             "example, then generalize the pattern."
         ),
         examples=[
-            f"Example 1: a minimal case showing {lesson_title.lower()} in isolation.",
-            f"Example 2: {lesson_title.lower()} combined with something you already know.",
+            f"Example 1: identify {lesson_title} in a small {course_topic} example.",
+            f"Example 2: combine {lesson_title} with a concept from {module_title}.",
         ],
         exercise=(
-            f"Try it yourself: write a small example that uses {lesson_title.lower()}, "
-            "then explain out loud (or in comments) why each line is there."
+            f"Try it yourself: create a small {course_topic} example using "
+            f"{lesson_title}, then explain why each step is needed."
         ),
-        summary=f"You've covered the core idea behind {lesson_title.lower()} and practiced applying it.",
+        summary=f"You practiced {lesson_title} in the context of {course_topic}.",
     )
