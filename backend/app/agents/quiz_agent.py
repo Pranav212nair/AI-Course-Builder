@@ -50,16 +50,45 @@ def _mock_quiz(module_title: str, lesson_summaries: list[str], recent_avg_score:
             Difficulty.easy if recent_avg_score < 60 else Difficulty.medium
         )
 
-    num_questions = max(len(lesson_summaries), 1)
     questions = [
         QuizQuestionOut(
-            question=f"[{module_title}] Which of the following best applies to concept {i + 1}?",
+            question=f"Which statement best summarizes this module's main idea?",
             question_type=QuestionType.multiple_choice,
-            options=["Correct concept", "Common misconception A", "Common misconception B", "Unrelated concept"],
-            correct_answer="Correct concept",
-            topic=f"{module_title} — concept {i + 1}",
+            options=[
+                "It should be understood and applied in a small example",
+                "It should be memorized without practice",
+                "It is unrelated to the lessons",
+                "It can only be used in advanced projects",
+            ],
+            correct_answer="It should be understood and applied in a small example",
+            topic=module_title,
             difficulty=difficulty,
-        )
-        for i in range(min(num_questions, 5))
+        ),
+        QuizQuestionOut(
+            question="What is the best first step when applying a new concept?",
+            question_type=QuestionType.multiple_choice,
+            options=[
+                "Start with a small, testable example",
+                "Skip directly to the hardest problem",
+                "Avoid checking the result",
+                "Copy a solution without understanding it",
+            ],
+            correct_answer="Start with a small, testable example",
+            topic=f"{module_title} — application",
+            difficulty=difficulty,
+        ),
+        QuizQuestionOut(
+            question="How should you respond when an example produces an unexpected result?",
+            question_type=QuestionType.multiple_choice,
+            options=[
+                "Inspect the steps, isolate the issue, and test a correction",
+                "Ignore the result",
+                "Delete the entire project",
+                "Assume every result is correct",
+            ],
+            correct_answer="Inspect the steps, isolate the issue, and test a correction",
+            topic=f"{module_title} — debugging",
+            difficulty=difficulty,
+        ),
     ]
     return QuizQuestionSet(questions=questions)
