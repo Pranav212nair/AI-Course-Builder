@@ -47,7 +47,7 @@ Content and quiz generation are each a single agent call triggered by a
 `GET` request, so they're called directly rather than wrapped in a
 one-node graph.
 
-### Mock mode — run the whole thing without an OpenAI key
+### AI-generated content and mock mode
 
 Every agent has a deterministic mock fallback. Set `USE_MOCK_AI=true` (or
 just leave `OPENAI_API_KEY` unset) and the entire pipeline — assessment,
@@ -55,6 +55,17 @@ roadmap generation, lesson content, quizzes, grading, adaptive
 re-planning — works end-to-end with no network calls. This is how the
 pipeline was tested while building it, and it's a genuinely useful way to
 demo or develop the app without spending API credits.
+
+Mock mode is intended for demonstrations and testing; it cannot teach
+arbitrary subjects with real subject-specific explanations. For real courses,
+set `OPENAI_API_KEY` to a valid OpenAI API key and set `USE_MOCK_AI=false`.
+The deployed Render service is configured for this mode, so add the key in
+the service's environment variables before creating a new course.
+
+Lesson content is generated the first time a lesson is opened and then saved
+in the database. Existing courses keep their previously generated content.
+After changing AI settings or generators, delete the old course and create a
+new one to generate fresh lessons and quizzes.
 
 ## Project structure
 
