@@ -15,3 +15,7 @@ export function listCourses() {
 export function getCourse(courseId) {
   return api.get(`/courses/${courseId}`).then((res) => res.data);
 }
+
+export function deleteCourse(courseId) {
+  return api.delete(`/courses/${courseId}`);
+}
