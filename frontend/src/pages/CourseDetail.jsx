@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { getCourse } from "../services/courses.js";
+import { deleteCourse, getCourse } from "../services/courses.js";
 import { getRoadmap, getProgress } from "../services/learning.js";
 import {
   COURSE_STATUS_LABELS,
@@ -95,6 +95,7 @@ export default function CourseDetail() {
   const [roadmap, setRoadmap] = useState(null);
   const [progress, setProgress] = useState(null);
   const [error, setError] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     getCourse(courseId)
@@ -107,6 +108,22 @@ export default function CourseDetail() {
     getRoadmap(courseId).then(setRoadmap).catch(() => {});
     getProgress(courseId).then(setProgress).catch(() => {});
   }, [course, courseId]);
+
+  async function handleDelete() {
+    if (!window.confirm(`Delete "${course.topic}"? This will permanently remove its roadmap, lessons, quizzes, and progress.`)) {
+      return;
+    }
+
+    setDeleting(true);
+    setError("");
+    try {
+      await deleteCourse(courseId);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err?.response?.data?.detail || "Couldn't delete this course. Try again.");
+      setDeleting(false);
+    }
+  }
 
   if (error) {
     return (
@@ -131,10 +148,20 @@ export default function CourseDetail() {
         </Link>
 
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-10">
-          <h1 className="font-display text-5xl text-ink">{course.topic}</h1>
-          <span className="badge badge-warning text-sm font-bold">
-            {COURSE_STATUS_LABELS[course.status] || course.status}
-          </span>
+          <div className="flex items-start gap-4">
+            <h1 className="font-display text-5xl text-ink">{course.topic}</h1>
+            <span className="badge badge-warning text-sm font-bold">
+              {COURSE_STATUS_LABELS[course.status] || course.status}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="btn-outline border-red-300 text-red-700 hover:bg-red-50 px-4 py-2 disabled:opacity-50"
+          >
+            {deleting ? "Deleting..." : "Delete course"}
+          </button>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
