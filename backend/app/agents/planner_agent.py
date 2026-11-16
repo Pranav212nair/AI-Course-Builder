@@ -50,18 +50,47 @@ def generate_roadmap(
 
 
 def _mock_roadmap(topic: str, weaknesses: list[str], total_minutes_budget: int) -> CourseRoadmap:
+    topic_label = topic.strip() or "your chosen topic"
     outline = [
-        ("Fundamentals", ["Getting set up", "Core concepts", "Your first exercise"]),
-        ("Building blocks", ["Key building block A", "Key building block B", "Putting it together"]),
-        ("Intermediate techniques", ["Technique 1", "Technique 2", "Common pitfalls"]),
-        ("Applied practice", ["Guided project — part 1", "Guided project — part 2"]),
-        ("Final project", ["Plan your project", "Build your project", "Review & next steps"]),
+        (
+            f"{topic_label}: foundations",
+            [
+                f"Getting started with {topic_label}",
+                f"Core concepts in {topic_label}",
+                f"First {topic_label} exercise",
+            ],
+        ),
+        (
+            f"{topic_label}: essential techniques",
+            [
+                f"Working with the main building blocks of {topic_label}",
+                f"Applying {topic_label} patterns",
+                f"Combining {topic_label} concepts",
+            ],
+        ),
+        (
+            f"{topic_label}: problem solving",
+            [
+                f"Debugging and troubleshooting {topic_label} work",
+                f"Common mistakes in {topic_label}",
+                f"Improving a {topic_label} solution",
+            ],
+        ),
+        (
+            f"{topic_label}: applied project",
+            [f"Plan a {topic_label} project", f"Build and test the project"],
+        ),
+        (
+            f"{topic_label}: capstone",
+            [f"Finish the {topic_label} capstone", "Review and next steps"],
+        ),
     ]
     # Nudge the first module's lessons toward known weaknesses, if any.
     if weaknesses:
         outline[0] = (
-            f"Fundamentals (focus: {weaknesses[0]})",
-            [f"Reviewing {w}" for w in weaknesses[:2]] + ["Core concepts"],
+            f"{topic_label}: foundations (focus: {weaknesses[0]})",
+            [f"Reviewing {w} in {topic_label}" for w in weaknesses[:2]]
+            + [f"Core concepts in {topic_label}"],
         )
 
     minutes_per_lesson = max(15, min(90, total_minutes_budget // (sum(len(l) for _, l in outline) or 1)))
